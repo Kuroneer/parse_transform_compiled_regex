@@ -1,7 +1,8 @@
-% Part of parse_transform_compiled_regex Erlang App
-% MIT License
-% Copyright (c) 2019 Jose Maria Perez Ramos
-
+%%%-------------------------------------------------------------------
+%%% Part of parse_transform_compiled_regex Erlang App
+%%% MIT License
+%%% Copyright (c) 2019 Jose Maria Perez Ramos
+%%%-------------------------------------------------------------------
 -module(parse_transform_compiled_regex_SUITE).
 -compile(export_all).
 -compile({parse_transform, parse_transform_compiled_regex}).
@@ -17,37 +18,21 @@ all() -> [
           timed
          ].
 
-
 suite() ->
     [{timetrap, {seconds, 30}}].
 
 
-init_per_suite(Config) ->
-    Config.
-
-
-end_per_suite(_) -> ok.
-
-
-init_per_testcase(_Case, Config) ->
-    Config.
-
-
-end_per_testcase(_Case, _Config) ->
-    ok.
-
-
-%% =============================================================================
+%%====================================================================
 %% Test cases
-%% =============================================================================
+%%====================================================================
 
 compile(_Config) ->
     HttpRegex = ?HTTP_REGEX,
-    Compiled1 = re:compile(HttpRegex), %% Not transformed
-    Compiled1 = re:compile(?HTTP_REGEX), %% Parse transformed
-    _ = re:compile([$a | ?HTTP_REGEX]), %% Parse transformed
+    Compiled1 = re:compile(HttpRegex), % Not transformed
+    Compiled1 = re:compile(?HTTP_REGEX), % Parse transformed
+    _ = re:compile([$a | ?HTTP_REGEX]), % Parse transformed
     F = fun() -> ?HTTP_REGEX end,
-    Compiled1 = re:compile(F()), %% Not transformed
+    Compiled1 = re:compile(F()), % Not transformed
     {ok, _} = Compiled1,
 
     CompileOptions = [
@@ -69,7 +54,7 @@ compile(_Config) ->
                      ],
 
     Compiled2 = re:compile(HttpRegex, CompileOptions),
-    Compiled2 = re:compile(?HTTP_REGEX, [ %% Parse transformed
+    Compiled2 = re:compile(?HTTP_REGEX, [ % Parse transformed
                                          anchored,
                                          caseless,
                                          dollar_endonly,
@@ -90,7 +75,6 @@ compile(_Config) ->
     {'EXIT', {badarg, _}} = (catch re:compile(?HTTP_REGEX, [patata])),
     ok.
 
-
 replace(_Config) ->
     Sentence = "TOMATE: The tomate strikes back.",
     Replacement = "tomato",
@@ -100,7 +84,6 @@ replace(_Config) ->
     PrecompiledResult = CompiledResult,
     <<"tomato: The tomate strikes back.">> = CompiledResult,
     ok.
-
 
 run(_Config) ->
     Sentence = "aaaaaaaaaaaz",
@@ -120,12 +103,11 @@ split(_Config) ->
     [<<>>,<<"aaaaaaaaaaa">>,<<>>] = CompiledResult,
     ok.
 
-
 timed(_Config) ->
-    %% Yes, this test is not a proper test, as it relies on the implementation,
-    %% it's here just as a commodity
+    % Yes, this test is not a proper test, as it relies on the implementation,
+    % it's here just as a commodity
     HttpRegex = ?HTTP_REGEX,
-    Iterations = 10000,
+    Iterations = 100000,
     Subject = "http://erlang.org/doc/man/re.html#split-2",
 
     PreCompiledRunFun = fun() -> match = re:run(Subject, ?HTTP_REGEX, [{capture, none}]) end,
@@ -147,13 +129,13 @@ timed(_Config) ->
            [Iterations, TimePrecompiled1, Iterations, TimeReCompiled1]
           ),
     true = TimeReCompiled1 > TimePrecompiled1,
-    % throw(error), %% Uncomment to see results in terminal
+    % throw(error), % Uncomment to see results in terminal
     ok.
 
 
-%% =============================================================================
+%%====================================================================
 %% Internal functions
-%% =============================================================================
+%%====================================================================
 
 repeat(_Fun, 0) ->
     ok;
