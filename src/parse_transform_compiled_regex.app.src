@@ -1,6 +1,6 @@
 {application, parse_transform_compiled_regex,
  [{description, "erlang parse_transform to precompile regex"},
-  {vsn, "0.1.1"},
+  {vsn, "0.1.2"},
   {registered, []},
   {applications,
    [kernel,

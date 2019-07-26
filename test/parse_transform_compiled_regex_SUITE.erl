@@ -103,6 +103,15 @@ split(_Config) ->
     [<<>>,<<"aaaaaaaaaaa">>,<<>>] = CompiledResult,
     ok.
 
+run_options(_Config) ->
+    Caseless = caseless,
+    Sentence = "aaaaaaaaaaaz",
+    Pattern = "(A*)z",
+    CompiledResult = re:run(Sentence,  Pattern, [Caseless, global]),
+    CompiledResult = re:run(Sentence, "(A*)z", [Caseless, global]),
+    {match,[[{0,12},{0,11}]]} = CompiledResult,
+    ok.
+
 timed(_Config) ->
     % Yes, this test is not a proper test, as it relies on the implementation,
     % it's here just as a commodity
