@@ -116,14 +116,14 @@ compile_regex(RE, MaybeOpts, PassthroughOptionsKeys, CurrentModuleName) ->
         {PassthroughOptions,_} = proplists:split(CompileOptions, PassthroughOptionsKeys),
         FunctionOptionsWithPassthrough = lists:flatten(PassthroughOptions) ++ FunctionOptions,
 
-        io:format("Parse transform (~p:~p): Compiling regex ~p with options ~w~n", [CurrentModuleName, RELine, REData, CompileOptions]),
+        io:format("Parse transform (~p:~p): Compiling regex ~p with options ~w. Runtime options are ~w~n", [CurrentModuleName, RELine, REData, CompileOptions, FunctionOptionsWithPassthrough]),
         try
             {ok, Compiled} = erlang:apply(re, compile, [REData, CompileOptions]),
             {erl_parse:abstract(Compiled, [{line, RELine}]), [erl_parse:abstract(FunctionOptionsWithPassthrough)]}
         catch
             _:Reason ->
                 io:format(
-                  "Parse transform (~p~p): Falling back: Failed to compile regex ~p with options ~w: ~p~n",
+                  "Parse transform (~p:~p): Falling back: Failed to compile regex ~p with options ~w: ~p~n",
                   [CurrentModuleName, RELine, REData, CompileOptions, Reason]
                   ),
                 error
