@@ -9,7 +9,7 @@
 
 -define(
    AST_REMOTE_CALL(ModuleName, FunctionName),
-   {remote, _CallLine, {atom, _ModuleLine, ModuleName}, {atom, _FunctionLine, FunctionName}}
+   {remote, _CallAnno, {atom, _ModuleAnno, ModuleName}, {atom, _FunctionAnno, FunctionName}}
   ).
 
 %%====================================================================
@@ -31,13 +31,13 @@ parse_transform(Ast, _Opt) ->
             Ast
     end.
 
-parse({function, Line, FunctionName, ArgNum, Clauses}, CurrentModuleName) ->
-    {function, Line, FunctionName, ArgNum, [parse_compiled_regex_clause(Clause, CurrentModuleName) || Clause <- Clauses]};
+parse({function, Anno, FunctionName, ArgNum, Clauses}, CurrentModuleName) ->
+    {function, Anno, FunctionName, ArgNum, [parse_compiled_regex_clause(Clause, CurrentModuleName) || Clause <- Clauses]};
 parse(X, _CurrentModuleName) ->
     X.
 
-parse_compiled_regex_clause({clause, ClauseLine, Vars, Guard, Expressions}, CurrentModuleName) ->
-    {clause, ClauseLine, Vars, Guard, [parse_compiled_regex_expression(Expression, CurrentModuleName) || Expression <- Expressions]}.
+parse_compiled_regex_clause({clause, Anno, Vars, Guard, Expressions}, CurrentModuleName) ->
+    {clause, Anno, Vars, Guard, [parse_compiled_regex_expression(Expression, CurrentModuleName) || Expression <- Expressions]}.
 
 %% Compile regex:
 parse_compiled_regex_expression({call, _L1, ?AST_REMOTE_CALL(re, compile), [RE | MaybeOpts]} = Expression, CurrentModuleName) ->
