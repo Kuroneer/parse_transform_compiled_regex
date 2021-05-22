@@ -15,7 +15,14 @@ all() -> [
           replace,
           run,
           split,
-          timed
+
+          binary_compile,
+          binary_match,
+          binary_matches,
+          binary_split,
+          binary_replace,
+
+          timed_re
          ].
 
 suite() ->
@@ -112,7 +119,68 @@ run_options(_Config) ->
     {match,[[{0,12},{0,11}]]} = CompiledResult,
     ok.
 
-timed(_Config) ->
+-define(BINARY_PATTERN, [<<".">>, <<"/">>]).
+binary_compile(_Config) ->
+    Pattern = ?BINARY_PATTERN,
+    Compiled1 = binary:compile_pattern(BINARY_PATTERN), % Not transformed
+    Compiled1 = binary:compile_pattern(?BINARY_PATTERN), % Parse transformed
+
+    F = fun() -> ?BINARY_PATTERN end,
+    Compiled1 = binary:compile_pattern(F()), % Not transformed
+    {ok, _} = Compiled1,
+
+    Compiled2 = binary:compile_pattern([<<";">> | ?BINARY_PATTERN]), % Parse transformed
+    Compiled2 = binary:compile_pattern([<<";">> | BINARY_PATTERN), % Not transformed
+    {ok, _} = Compiled2,
+    ok.
+
+binary_match(_Config) ->
+    Subject = <<"abdcd/efghi.jklm/.opq">>,
+    Pattern = ?BINARY_PATTERN,
+    Match1 = binary:match(Subject, ?BINARY_PATTERN),
+    Match1 = binary:match(Subject, Pattern),
+    {_, _} = Match1,
+
+    Options = [],
+    Match2 = binary:match(Subject, ?BINARY_PATTERN, Options),
+    Match2 = binary:match(Subject, Pattern, Options),
+    {_, _} = Match2,
+    ok.
+
+binary_matches(_Config) ->
+    Subject = <<"abdcd/efghi.jklm/.opq">>,
+    Pattern = ?BINARY_PATTERN,
+    Match1 = binary:matches(Subject, ?BINARY_PATTERN),
+    Match1 = binary:matches(Subject, Pattern),
+    [_ | _] = Match1,
+
+    Options = [],
+    Match2 = binary:matches(Subject, ?BINARY_PATTERN, Options),
+    Match2 = binary:matches(Subject, Pattern, Options),
+    [_ | _] = Match2,
+    ok.
+
+binary_split(_Config) ->
+    Subject = <<"abdcd/efghi.jklm/.opq">>,
+    Pattern = ?BINARY_PATTERN,
+    Match1 = binary:split(Subject, ?BINARY_PATTERN),
+    Match1 = binary:split(Subject, Pattern),
+    [_ | _] = Match1,
+
+    Options = [trim],
+    Match2 = binary:split(Subject, ?BINARY_PATTERN, Options),
+    Match2 = binary:split(Subject, Pattern, Options),
+    [_ | _] = Match2,
+    ok.
+
+binary_replace(_Config) ->
+    ok.
+
+
+
+
+
+timed_re(_Config) ->
     % Yes, this test is not a proper test, as it relies on the implementation,
     % it's here just as a commodity
     HttpRegex = ?HTTP_REGEX,

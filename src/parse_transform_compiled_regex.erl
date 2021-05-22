@@ -79,8 +79,55 @@ parse_compiled_regex_expression({call, _, ?AST_REMOTE_CALL(re, Fun), [Subject, R
         {CompiledRE, FunctionOptions} ->
             erlang:setelement(4, Expression, [Subject, CompiledRE | FunctionOptions ])
     end;
+
+%% Compile binary
+parse_compiled_regex_expression({call, _L1, ?AST_REMOTE_CALL(binary, compile_pattern), [Pattern]} = Expression, CurrentModuleName) ->
+    % binary:compile_pattern/1
+    try
+        PatternData = erl_parse:normalise(Pattern),
+        PatternLine = erl_anno:line(element(2, Pattern)),
+        io:format("Parse transform (~p:~p): Compiling binary pattern ~p~n", [CurrentModuleName, PatternLine, PatternData]),
+        try
+            erl_parse:abstract(binary:compile_pattern(PatternData), [{line, PatternLine}])
+        catch
+            _:Reason ->
+                io:format(
+                  "Parse transform (~p:~p): Falling back: Failed to compile binary pattern ~p: ~p~n",
+                  [CurrentModuleName, PatternLine, PatternData, Reason]
+                 ),
+                Expression
+        end
+    catch
+        _:_ -> Expression
+    end;
+parse_compiled_regex_expression({call, _, ?AST_REMOTE_CALL(binary, Fun), [Subject, Pattern | Other]} = Expression, CurrentModuleName)
+  when Fun == match; Fun == matches; Fun == split; Fun == replace ->
+    try
+        PatternData = erl_parse:normalise(Pattern),
+        false = is_tuple(PatternData),
+        PatternLine = erl_anno:line(element(2, Pattern)),
+        io:format("Parse transform (~p:~p): Compiling binary pattern ~p~n", [CurrentModuleName, PatternLine, PatternData]),
+
+        try
+          io:format("~p~n", [PatternData]),
+            Compiled = binary:compile_pattern(PatternData),
+
+          io:format("~p~n", [Compiled]),
+            erlang:setelement(4, Expression, [Subject, erl_parse:abstract(Compiled, [{line, PatternLine}]), Other])
+        catch
+            _:Reason ->
+                io:format(
+                  "Parse transform (~p:~p): Falling back: Failed to compile binary pattern ~p: ~p~n",
+                  [CurrentModuleName, PatternLine, PatternData, Reason]
+                  ),
+                Expression
+        end
+    catch
+        _:_ -> Expression
+    end;
+
+%% Recursive search:
 parse_compiled_regex_expression(Expression, CurrentModuleName) when is_tuple(Expression) ->
-    % Recursive search:
     lists:foldl(fun(Index, TupleIn) ->
                         Current = element(Index, Expression),
                         case parse_compiled_regex_expression(Current, CurrentModuleName) of
